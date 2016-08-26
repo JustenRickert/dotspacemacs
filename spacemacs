@@ -279,82 +279,47 @@ where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a
 package is loaded, you should place your code here."
 
-  ;; i3 shenanigans - you should make this a layer, then submit it to the
-  ;; spacemacs git! edit: I actually don't think that I like. :/
-
-  ;; (add-to-list 'load-path "~/.emacs.d/private/local/i3-emacs")
-  ;; (require 'i3)
-  ;; (require 'i3-integration)
-  ;; (i3-one-window-per-frame-mode-on)
-
   ;; org-babel haskell -- for running inline code
   (add-to-list 'load-path "~/.emacs.d/private/local")
   (require 'ob-haskell)
 
-  ;; ;; latex
-  ;; (require 'ox-latex)
-  ;; (unless (boundp 'org-latex-classes)
-  ;;   (setq org-latex-classes nil))
-  ;; (add-to-list 'org-latex-classes
-  ;;              '("article"
-  ;;                "\\documentclass{article}"
-  ;;                ("\\section{%s}" . "\\section*{%s}")))
-
   ;; shorten up the powerline! Also displays the clock.
   (setq
    spaceline-buffer-size-p nil
-   spaceline-org-clock-p "give me the clock"
+   spaceline-org-clock-p "give me the clock" ; just a funny way to do true, sorry.
    spaceline-minor-modes-p nil
    spaceline-buffer-encoding-abbrev-p nil)
 
   ;; Org-mode
   (add-hook 'org-mode-hook
             (lambda ()
+              (company-mode nil)
               (org-indent-mode)
               (abbrev-mode t)
               (auto-fill-mode t)))
-
-  ;; ;; company keys. Thinking about these a lot right now.
-  ;; (add-hook 'company-mode-hook
-  ;;   (define-key evil-insert-state-map (kbd "TAB") nil)
-  ;;   (define-key evil-insert-state-map (kbd "<tab>") nil)
-  ;;   (define-key evil-insert-state-map (kbd "TAB") 'company-complete-common-or-cycle)
-  ;;   (define-key evil-insert-state-map (kbd "<tab>") 'company-complete-common-or-cycle)
-
-  ;;   (define-key evil-insert-state-map (kbd "S-TAB") 'company-select-previous)
-  ;;   (define-key evil-insert-state-map (kbd "<backtab>") 'company-select-previous))
-
-  ;; (defun my-company-abort ()
-  ;;   (interactive)
-  ;;   (company-abort)
-  ;;   (when (and (bound-and-true-p evil-mode)
-  ;;              (eq evil-state 'insert))
-  ;;     (evil-force-normal-state)))
 
   ;; org-agenda files
   (setq org-agenda-files
         (delq nil
               (mapcar (lambda (x) (and (file-exists-p x) x))
-                      '(
-                        "~/org/notes.org"
-                        "~/org/.notes"
-                        "~/org/finances.org"
-                        ))))
+                      '("~/org/notes.org"
+                        "~/org/timing.org"
+                        "~/org/finances.org"))))
 
   (add-to-list 'auto-mode-alist '(".notes" . org-mode))
 
   ;; todos
   (setq org-todo-keywords '(
-                            (sequence "TODO(t)" "|" "DONE(d)")
-                            (sequence "WAITING(w)" "|")
-                            (sequence "|" "CANCELED(c)")
+                            (sequence "en passant" "en attente" "|"  "fini" "terminé")
                             ))
 
-  ;; ;; todos used to have symbols that used to look like:
-  ;; (setq org-todo-keywords '((sequence "☛ TODO(t)" "|" "✔ DONE(d)")
-  ;;                           (sequence "⚑ WAITING(w)" "|")
-  ;;                           (sequence "|" "✘ CANCELED(c)")))
-  ;; ;; I thing it looks better w/o the symbols, honestly.
+  (setq org-todo-keyword-faces
+        '(
+          ( "en passant" . "orange")
+          ( "en attente" . "sky blue")
+          ( "fini" . "brown")
+          ( "terminé" . (:background "dark gray" :foreground "brown"))
+          ))
 
   ;; enter insert state automatically, because I can never otherwise.
   (add-hook 'org-capture-mode-hook 'evil-insert-state)
@@ -366,20 +331,6 @@ package is loaded, you should place your code here."
     (define-key company-active-map (kbd "C-w") 'evil-delete-backward-word))
   (with-eval-after-load 'helm
     (define-key helm-map (kbd "C-w") 'evil-delete-backward-word))
-
-  ;; ;; w3m - I don't really use this,though.
-  ;; (setq w3m-home-page "http://www.google.com")
-  ;; ;; W3M Home Page
-  ;; (setq w3m-default-display-inline-images t)
-  ;; (setq w3m-default-toggle-inline-images t)
-  ;; ;; W3M default display images
-  ;; (setq w3m-command-arguments '("-cookie" "-F"))
-  ;; (setq w3m-use-cookies t)
-  ;; ;; W3M use cookies
-  ;; (setq browse-url-browser-function 'w3m-browse-url)
-  ;; ;; Browse url function use w3m
-  ;; (setq w3m-view-this-url-new-session-in-background t)
-  ;; ;; W3M view url new session in background
 
   ;; Additional leader keys that I'v added. Pretty straight forward.
   (spacemacs/set-leader-keys
@@ -399,16 +350,6 @@ package is loaded, you should place your code here."
   ;; annoying validate thing in org export that I don't understand
   (setq org-html-validation-link nil)
 
-  ;; ;; Twitch in Emacs? Opens livestreamer? Doesn't work with
-  ;; ;; livestreamer, yet.
-  ;; (load-file "~/.emacs.d/layers/helm-twitch/livestreamer.el")
-  ;; (load-file "~/.emacs.d/layers/helm-twitch/helm-twitch.el")
-  ;; (load-file "~/.emacs.d/layers/helm-twitch/twitch-api.el")
-
-  ;; This is a really great idea, but I dunno how it like fucking WORKS, MAN! FUCK!
-  ;; (add-hook 'org-mode-hook (lambda ()
-  ;;                            (push '(?, . (", " . " ,")) evil-surround-pairs-alist)))
-
   ;; Emacs-like C-a, C-e. Honestly, I don't even know C-e does otherwise...
   (define-key evil-insert-state-map (kbd "C-a") 'back-to-indentation)
   (define-key evil-insert-state-map (kbd "C-e") 'move-end-of-line)
@@ -423,7 +364,8 @@ package is loaded, you should place your code here."
   ;; Sets ispell to aspell which is supposed to be more accurate at the cost of
   ;; performance.
   (setq ispell-extra-args '("--sug-mode=fast"))
-  ) ;; defun user-config
+
+  ) ;; end defun user-config
 
 
 
