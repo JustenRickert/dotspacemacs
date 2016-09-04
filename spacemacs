@@ -1,4 +1,4 @@
-;; -*- mode: emacs-lisp -*-
+;; -*- MODE: emacs-lisp -*-
 ;; This file is loaded by Spacemacs at startup.
 ;; It must be stored in your home directory.
 
@@ -49,6 +49,9 @@ values."
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
    dotspacemacs-additional-packages '(
+                                      org-alert
+                                      org-agenda-property
+                                      ;; pabbrev
                                       ranger
                                       android-mode
                                       emacs-eclim
@@ -283,30 +286,39 @@ package is loaded, you should place your code here."
   (add-to-list 'load-path "~/.emacs.d/private/local")
   (require 'ob-haskell)
 
+  (require 'org-alert)
+  ;; libnotify uses notify-send to make dunst do cool shit
+  (setq alert-default-style 'libnotify)
+  (setq org-alert-interval 1800)        ; 1800 is 30m
+
   ;; shorten up the powerline! Also displays the clock.
   (setq
    spaceline-buffer-size-p nil
-   spaceline-org-clock-p "give me the clock" ; just a funny way to do true, sorry.
+   spaceline-org-clock-p t ; just a funny way to do true, sorry.
    spaceline-minor-modes-p nil
    spaceline-buffer-encoding-abbrev-p nil)
 
+  (remove-hook 'org-mode-hook
+               'company-mode)
   ;; Org-mode
   (add-hook 'org-mode-hook
             (lambda ()
-              (company-mode nil)
+              (setq dabbrev--case-fold-search t)
+              (setq dabbrev-case-replace t)
+              ;; (pabbrev-mode)
               (org-indent-mode)
-              (abbrev-mode t)
-              (auto-fill-mode t)))
+              (abbrev-mode)
+              (auto-fill-mode)))
 
   ;; org-agenda files
   (setq org-agenda-files
         (delq nil
               (mapcar (lambda (x) (and (file-exists-p x) x))
-                      '("~/org/notes.org"
+                      '("~/org/note.org"
+                        "~/org/classes/schedule.org"
                         "~/org/timing.org"
-                        "~/org/finances.org"))))
-
-  (add-to-list 'auto-mode-alist '(".notes" . org-mode))
+                        "~/org/finance.org"))))
+  ;; (add-to-list 'auto-mode-alist '(".notes" . org-mode))
 
   ;; todos
   (setq org-todo-keywords '(
@@ -374,7 +386,7 @@ package is loaded, you should place your code here."
 
 
 
-
+;; AUTOMATIC CONFIG
 
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
@@ -395,6 +407,7 @@ package is loaded, you should place your code here."
  '(nrepl-message-colors
    (quote
     ("#CC9393" "#DFAF8F" "#F0DFAF" "#7F9F7F" "#BFEBBF" "#93E0E3" "#94BFF3" "#DC8CC3")))
+ '(org-capture-templates (quote (("t" "task" entry (file "~/org/notes.org") ""))))
  '(paradox-github-token t)
  '(pos-tip-background-color "#303030")
  '(powerline-color1 "#3d3d68")
