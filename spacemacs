@@ -310,6 +310,16 @@ package is loaded, you should place your code here."
               (abbrev-mode)
               (auto-fill-mode)))
 
+  ;; deferring is always better I guess.
+  (quietly-read-abbrev-file)
+
+  ;; abbrev defs location
+  (setq abbrev-file-name
+        "~/org/.extra/abbrev_defs")
+
+  ;; no annoying warning.
+  (setq save-abbrevs 'silently)
+
   ;; org-agenda files
   (setq org-agenda-files
         (delq nil
@@ -369,9 +379,6 @@ package is loaded, you should place your code here."
   (define-key evil-normal-state-map (kbd "C-e") 'move-end-of-line)
   (define-key evil-visual-state-map (kbd "C-a") 'move-beginning-of-line)
   (define-key evil-visual-state-map (kbd "C-e") 'move-end-of-line)
-
-  ;; deferring is always better I guess.
-  (quietly-read-abbrev-file)
 
   ;; Sets ispell to aspell which is supposed to be more accurate at the cost of
   ;; performance.
