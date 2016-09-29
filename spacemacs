@@ -33,6 +33,8 @@ values."
      markdown
      org
      java
+     javascript
+     html
      shell
      (shell :variables
             shell-default-height 30
@@ -49,20 +51,22 @@ values."
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
    dotspacemacs-additional-packages '(
+                                      plant-uml-mode
                                       org-alert
                                       org-agenda-property
                                       ;; pabbrev
                                       ranger
                                       android-mode
-                                      emacs-eclim
                                       )
    ;; A list of packages and/or extensions that will not be install and loaded.
-   dotspacemacs-excluded-packages '()
+   dotspacemacs-excluded-packages '(
+                                    adaptive-wrap
+                                    )
    ;; If non-nil spacemacs will delete any orphan packages, i.e. packages that
    ;; are declared in a layer which is not a member of
    ;; the list `dotspacemacs-configuration-layers'. (default t)
 
-   dotspacemacs-delete-orphan-packages t))
+   dotspacemacs-delete-orphan-packages t)) ; disgusting
 
 (defun dotspacemacs/init ()
   "Initialization function.
@@ -113,10 +117,12 @@ values."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(farmhouse-dark       ; highlights begin_src lines, neutral theme
+   dotspacemacs-themes '(farmhouse-dark
+                         farmhouse-light
+                          ; highlights begin_src lines, neutral theme
                          twilight-anti-bright ; very purple, dark blue, I like
                                               ; this one makes use of highlight
-                                             ; well. Also highlights begin_src
+                                              ; well. Also highlights begin_src
                                               ; lines
                          gandalf
                          ;; soft-stone
@@ -282,14 +288,40 @@ where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a
 package is loaded, you should place your code here."
 
+  ;; golang
+  (setenv "GOPATH" "/home/justen/go")
+
   ;; org-babel haskell -- for running inline code
   (add-to-list 'load-path "~/.emacs.d/private/local")
   (require 'ob-haskell)
 
+  ;; org-babel plantuml -- for making inline graphs
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '(;; other Babel languages
+     (plantuml . t)))
+
+  ;; plantuml needs this!
+  (setq org-plantuml-jar-path
+        (expand-file-name "~/.emacs.d/plantumljarthing/plantuml.jar"))
+
+  ;; Who I am
+  (setq user-full-name "Justen Rickert")
+  (setq user-mail-address "justenrickert@gmail.com")
+
+  ;; It is 600 by default
+  (setq max-lisp-eval-depth 1000)
+
+  ;; moves the mouse out of the way.
+  (mouse-avoidance-mode 'cat-and-mouse)
+
   (require 'org-alert)
   ;; libnotify uses notify-send to make dunst do cool shit
+  (setq org-alert-notification-title "org")
   (setq alert-default-style 'libnotify)
-  (setq org-alert-interval 1800)        ; 1800 is 30m
+
+  ;; this doesn't matter with `org-alert-enable'
+  (setq org-alert-interval 600)        ; 600 is 10m
 
   ;; shorten up the powerline! Also displays the clock.
   (setq
@@ -298,16 +330,18 @@ package is loaded, you should place your code here."
    spaceline-minor-modes-p nil
    spaceline-buffer-encoding-abbrev-p nil)
 
-  (remove-hook 'org-mode-hook
-               'company-mode)
+  ;; (remove-hook 'org-mode-hook
+  ;;              'company-mode)
+
   ;; Org-mode
   (add-hook 'org-mode-hook
-            (lambda ()
+            (progn
               (setq dabbrev--case-fold-search t)
               (setq dabbrev-case-replace t)
               ;; (pabbrev-mode)
-              (org-indent-mode)
+              ;; (org-indent-mode)
               (abbrev-mode)
+              (golden-ratio-mode)
               (auto-fill-mode)))
 
   ;; deferring is always better I guess.
@@ -326,22 +360,38 @@ package is loaded, you should place your code here."
               (mapcar (lambda (x) (and (file-exists-p x) x))
                       '("~/org/note.org"
                         "~/org/classes/schedule.org"
-                        "~/org/timing.org"
                         "~/org/finance.org"))))
   ;; (add-to-list 'auto-mode-alist '(".notes" . org-mode))
 
+  ;; I had an idea
+  ;; (defun schedule.org_file_hook ()
+  ;;   (when (string= (file-name-nondirectory (buffer-file-name)) "schedule.org")
+  ;;                  (setq org-todo-keywords nil)
+  ;;                  (setq org-todo-keywords
+  ;;                        '((sequence "will" "won't" "|" "did" "didn't")))
+  ;;                  (setq org-todo-keyword-faces
+  ;;                        '(
+  ;;                          ("will" . "green")
+  ;;                          ("won't" . "orange")
+  ;;                          ("did" . "sky blue")
+  ;;                          ("didn't" . "red")))))
+  ;; (add-hook 'find-file-hook 'schedule.org_file_hook)
+
   ;; todos
-  (setq org-todo-keywords '(
-                            (sequence "en passant" "en attente" "|"  "fini" "terminé")
-                            ))
+  (setq org-todo-keywords
+        '((sequence "en passant" "en attente" "|" "fini" "terminé")
+          (sequence "will" "won't" "|" "did" "didn't")))
 
   (setq org-todo-keyword-faces
         '(
-          ( "en passant" . "orange")
-          ( "en attente" . "sky blue")
-          ( "fini" . "brown")
-          ( "terminé" . (:background "dark gray" :foreground "brown"))
-          ))
+          ("en passant" . "orange")
+          ("en attente" . "sky blue")
+          ("fini" . "brown")
+          ("terminé" . (:background "dark gray" :foreground "brown"))
+          ("will" . "green")
+          ("won't" . "orange")
+          ("did" . "sky blue")
+          ("didn't" . "red")))
 
   ;; enter insert state automatically, because I can never otherwise.
   (add-hook 'org-capture-mode-hook 'evil-insert-state)
@@ -364,6 +414,73 @@ package is loaded, you should place your code here."
     "-" 'text-scale-decrease
     "=" 'text-scale-mode)
 
+  (spacemacs/set-leader-keys-for-major-mode 'org-mode
+    "n" just/org-show-next-heading-tidily
+    "N" just/org-show-previous-heading-tidily
+    "u" just/hide-other
+    )
+
+  ;; (shell-command (concat "gnome open " (substring "\." 0 buffer-file-name)))
+
+  (concat (buffer-file-name))
+
+  ;; I've yet to implement this, yet.
+  (defun just/org-screenshot ()
+    "Take a screenshot into a time stamped unique-named file in the
+same directory as the org-buffer and insert a link to this file."
+    (interactive)
+    (setq filename
+          (concat
+           (make-temp-name
+            (concat (buffer-file-name)
+                    "_"
+                    (format-time-string "%Y%m%d_%H%M%S_")) ) ".png"))
+    (call-process "import" nil nil nil filename)
+    (insert (concat "[[" filename "]]"))
+    (org-display-inline-images))
+
+  (defun just/org-show-next-heading-tidily ()
+    "Show next entry, keeping other entries closed."
+    (if (save-excursion (end-of-line) (outline-invisible-p))
+        (progn (org-show-entry) (show-children))
+      (outline-next-heading)
+      (unless (and (bolp) (org-on-heading-p))
+        (org-up-heading-safe)
+        (hide-subtree)
+        (error "Boundary reached"))
+      (org-overview)
+      (org-reveal t)
+      (org-show-entry)
+      (show-children)))
+
+  (defun just/org-show-previous-heading-tidily ()
+    "Show previous entry, keeping other entries closed."
+    (let ((pos (point)))
+      (outline-previous-heading)
+      (unless (and (< (point) pos) (bolp) (org-on-heading-p))
+        (goto-char pos)
+        (hide-subtree)
+        (error "Boundary reached"))
+      (org-overview)
+      (org-reveal t)
+      (org-show-entry)
+      (show-children)))
+
+  (defun just/hide-other ()
+    (interactive)
+    (save-excursion
+      (org-back-to-heading 'invisible-ok)
+      (hide-other)
+      (org-cycle)
+      (org-cycle)
+      (org-cycle)))
+
+  ;; (setq org-use-speed-commands t)
+  ;; (add-to-list 'org-speed-commands-user
+  ;;              '("n" ded/org-show-next-heading-tidily))
+  ;; (add-to-list 'org-speed-commands-user
+  ;;              '("p" ded/org-show-previous-heading-tidily))
+
   ;; Server-start for my i3 stuff, and terminals. desktop-read for easy starting
   ;; up after power on.
   (desktop-read)
@@ -381,8 +498,8 @@ package is loaded, you should place your code here."
   (define-key evil-visual-state-map (kbd "C-e") 'move-end-of-line)
 
   ;; Sets ispell to aspell which is supposed to be more accurate at the cost of
-  ;; performance.
-  (setq ispell-extra-args '("--sug-mode=fast"))
+  ;; performance. This may have been causing freezing issues, though.
+  ;; (setq ispell-extra-args '("--sug-mode=fast"))
 
   ) ;; end defun user-config
 
