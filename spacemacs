@@ -18,6 +18,7 @@ values."
    ;; of a list then all discovered layers will be installed.
    dotspacemacs-configuration-layers
    '(
+     vimscript
      python
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
@@ -206,7 +207,7 @@ values."
    dotspacemacs-helm-no-header t
    ;; define the position to display `helm', options are `bottom', `top',
    ;; `left', or `right'. (default 'bottom)
-   dotspacemacs-helm-position 'bottom
+   dotspacemacs-helm-position 'top
    ;; If non nil the paste micro-state is enabled. When enabled pressing `p`
    ;; several times cycle between the kill ring content. (default nil)
    dotspacemacs-enable-paste-micro-state nil
@@ -345,26 +346,31 @@ package is loaded, you should place your code here."
   ;; Org-mode
   (add-hook 'org-mode-hook
             (lambda nil
+              (setq org-hide-emphasis-markers t)
               (setq dabbrev--case-fold-search t)
               (setq dabbrev-case-replace t)
+              (setq truncate-lines nil)
               ;; (pabbrev-mode)
               ;; (org-indent-mode)
               (abbrev-mode)
               (golden-ratio-mode)
               (auto-fill-mode)))
-
   (add-to-list 'golden-ratio-exclude-buffer-names '("*Choices*"
                                                     "*Org todo*"
                                                     "*Org Agenda*"))
   (add-to-list 'golden-ratio-exclude-modes '("ranger-mode"
                                              "dired-mode"))
 
+  ;; I think this gets rid of the things on the right margin on git. I find them
+  ;; distracting when working on only 80 columns.
+  (setq version-control-global-margin nil)
+
   ;; need this to rescale images with ATTR_HTML tags
   (setq org-image-actual-width nil)
 
-  ;; make available "org-bullet-face" such that I can control the font size individually
-  ;; (setq org-bullets-bullet-list '("♱" "♰" "☥" "✞" "✟" "✝" "†" "✠" "✚" "✜" "✛" "✢" "✣" "✤" "✥"))
-  ;; Simple, yet sophisticated
+  ;; make available "org-bullet-face" such that I can control the font size
+  ;; individually (setq org-bullets-bullet-list '("♱" "♰" "☥" "✞" "✟" "✝" "†"
+  ;; "✠" "✚" "✜" "✛" "✢" "✣" "✤" "✥")) Simple, yet sophisticated
   (setq org-bullets-bullet-list '("■" "◆" "▲" "▶"))
 
   ;; deferring is always better I guess.
@@ -437,7 +443,7 @@ same directory as the org-buffer and insert a link to this file."
     (org-display-inline-images))
 
   ;; this has to deal with inline image displaying.
-  (setq org-image-actual-width '(400))
+  (setq org-image-actual-width nil)
 
   (defun just-org-show-next-heading-tidily ()
     "Show next entry, keeping other entries closed."
@@ -485,7 +491,9 @@ same directory as the org-buffer and insert a link to this file."
     "aa" 'abbrev-mode
     "ad" 'ranger
     ;; "o" 'new-frame
-    "tt" 'spacemacs/toggle-typographic-substitutions ;`tT' is default, but `tt' is not taken
+    ;; `tT' is default, but `tt' is not taken
+    "tt" 'spacemacs/toggle-typographic-substitutions
+    "Ss" 'flyspell-mode
     "+" 'text-scale-increase
     "-" 'text-scale-decrease
     "=" 'text-scale-mode)
@@ -508,7 +516,20 @@ same directory as the org-buffer and insert a link to this file."
   (desktop-read)
   (desktop-auto-save-enable)
 
+  (setq org-emphasis-alist
+        (("*" bold)
+         ("/" italic)
+         ("_" underline)
+         ("=" org-verbatim verbatim)
+         ("~" org-code verbatim)
+         ("+"
+          (:strike-through t))
+         ("^"
+          (:overline t)
+          )))
+
   ;; annoying validate thing in org export that I don't understand
+  (setq org-export-html-validation-link nil)
   (setq org-html-validation-link nil)
 
 
@@ -533,9 +554,9 @@ same directory as the org-buffer and insert a link to this file."
  '(ansi-color-faces-vector
    [default bold shadow italic underline bold bold-italic bold])
  '(evil-want-Y-yank-to-eol t)
- '(fci-rule-color "#343d46" t)
+ '(fci-rule-color "#343d46")
  '(fringe-mode 6 nil (fringe))
- '(linum-format "%3i" t)
+ '(linum-format "%3i")
  '(main-line-color1 "#1E1E1E")
  '(main-line-color2 "#111111")
  '(main-line-separator-style (quote chamfer))
@@ -543,9 +564,9 @@ same directory as the org-buffer and insert a link to this file."
    (quote
     ("#CC9393" "#DFAF8F" "#F0DFAF" "#7F9F7F" "#BFEBBF" "#93E0E3" "#94BFF3" "#DC8CC3")))
  '(org-capture-templates (quote (("t" "task" entry (file "~/org/notes.org") ""))))
- '(package-selected-packages
+'(package-selected-packages
    (quote
-    (typit typing typing-game erc-yt erc-view-log erc-social-graph erc-image erc-hl-nicks gitter hide-comnt yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode company-anaconda anaconda-mode pythonic helm-purpose window-purpose imenu-list zonokai-theme zenburn-theme zen-and-art-theme xterm-color ws-butler window-numbering which-key web-mode web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package underwater-theme ujelly-theme typo twilight-theme twilight-bright-theme twilight-anti-bright-theme tronesque-theme toxi-theme toc-org tao-theme tangotango-theme tango-plus-theme tango-2-theme tagedit sunny-day-theme sublime-themes subatomic256-theme subatomic-theme stekene-theme spacemacs-theme spaceline spacegray-theme soothe-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme smeargle slim-mode shell-pop seti-theme scss-mode sass-mode reverse-theme restart-emacs ranger rainbow-delimiters railscasts-theme quelpa purple-haze-theme pug-mode professional-theme popwin planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme persp-mode pcre2el pastels-on-dark-theme paradox orgit organic-green-theme org-projectile org-present org-pomodoro org-plus-contrib org-download org-bullets org-alert org-agenda-property open-junk-file omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme niflheim-theme neotree naquadah-theme mwim mustang-theme multi-term move-text monokai-theme monochrome-theme molokai-theme moe-theme mmm-mode minimal-theme material-theme markdown-toc majapahit-theme magit-gitflow macrostep lush-theme lorem-ipsum livid-mode linum-relative link-hint light-soap-theme less-css-mode json-mode js2-refactor js-doc jbeans-theme jazz-theme ir-black-theme intero inkpot-theme info+ indent-guide ido-vertical-mode hungry-delete htmlize hlint-refactor hl-todo hindent highlight-parentheses highlight-numbers highlight-indentation heroku-theme hemisu-theme help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-hoogle helm-gitignore helm-flx helm-descbinds helm-css-scss helm-company helm-c-yasnippet helm-ag hc-zenburn-theme haskell-snippets gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme google-translate golden-ratio go-eldoc gnuplot gmail-message-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ gh-md gandalf-theme flyspell-correct-helm flycheck-pos-tip flycheck-haskell flx-ido flatui-theme flatland-theme firebelly-theme fill-column-indicator farmhouse-theme fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu espresso-theme eshell-z eshell-prompt-extras esh-help emmet-mode elisp-slime-nav edit-server dumb-jump dracula-theme django-theme diff-hl define-word darktooth-theme darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme company-web company-tern company-statistics company-go company-ghci company-ghc company-emacs-eclim company-cabal column-enforce-mode colorsarenice-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode cmm-mode clues-theme clojure-snippets clj-refactor clean-aindent-mode cider-eval-sexp-fu cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme auto-yasnippet auto-highlight-symbol auto-dictionary auto-compile apropospriate-theme anti-zenburn-theme android-mode ample-zen-theme ample-theme alect-themes aggressive-indent afternoon-theme ace-window ace-link ace-jump-helm-line ac-ispell)))
+    (olivetti vimrc-mode dactyl-mode typit typing typing-game erc-yt erc-view-log erc-social-graph erc-image erc-hl-nicks gitter hide-comnt yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode company-anaconda anaconda-mode pythonic helm-purpose window-purpose imenu-list zonokai-theme zenburn-theme zen-and-art-theme xterm-color ws-butler window-numbering which-key web-mode web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package underwater-theme ujelly-theme typo twilight-theme twilight-bright-theme twilight-anti-bright-theme tronesque-theme toxi-theme toc-org tao-theme tangotango-theme tango-plus-theme tango-2-theme tagedit sunny-day-theme sublime-themes subatomic256-theme subatomic-theme stekene-theme spacemacs-theme spaceline spacegray-theme soothe-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme smeargle slim-mode shell-pop seti-theme scss-mode sass-mode reverse-theme restart-emacs ranger rainbow-delimiters railscasts-theme quelpa purple-haze-theme pug-mode professional-theme popwin planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme persp-mode pcre2el pastels-on-dark-theme paradox orgit organic-green-theme org-projectile org-present org-pomodoro org-plus-contrib org-download org-bullets org-alert org-agenda-property open-junk-file omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme niflheim-theme neotree naquadah-theme mwim mustang-theme multi-term move-text monokai-theme monochrome-theme molokai-theme moe-theme mmm-mode minimal-theme material-theme markdown-toc majapahit-theme magit-gitflow macrostep lush-theme lorem-ipsum livid-mode linum-relative link-hint light-soap-theme less-css-mode json-mode js2-refactor js-doc jbeans-theme jazz-theme ir-black-theme intero inkpot-theme info+ indent-guide ido-vertical-mode hungry-delete htmlize hlint-refactor hl-todo hindent highlight-parentheses highlight-numbers highlight-indentation heroku-theme hemisu-theme help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-hoogle helm-gitignore helm-flx helm-descbinds helm-css-scss helm-company helm-c-yasnippet helm-ag hc-zenburn-theme haskell-snippets gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme google-translate golden-ratio go-eldoc gnuplot gmail-message-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ gh-md gandalf-theme flyspell-correct-helm flycheck-pos-tip flycheck-haskell flx-ido flatui-theme flatland-theme firebelly-theme fill-column-indicator farmhouse-theme fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu espresso-theme eshell-z eshell-prompt-extras esh-help emmet-mode elisp-slime-nav edit-server dumb-jump dracula-theme django-theme diff-hl define-word darktooth-theme darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme company-web company-tern company-statistics company-go company-ghci company-ghc company-emacs-eclim company-cabal column-enforce-mode colorsarenice-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode cmm-mode clues-theme clojure-snippets clj-refactor clean-aindent-mode cider-eval-sexp-fu cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme auto-yasnippet auto-highlight-symbol auto-dictionary auto-compile apropospriate-theme anti-zenburn-theme android-mode ample-zen-theme ample-theme alect-themes aggressive-indent afternoon-theme ace-window ace-link ace-jump-helm-line ac-ispell)))
  '(paradox-github-token t)
  '(pos-tip-background-color "#303030")
  '(powerline-color1 "#3d3d68")
