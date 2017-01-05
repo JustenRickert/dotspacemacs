@@ -23,7 +23,9 @@ values."
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
      ;; <M-m f e R> (Emacs style) to install them.
      ;; ----------------------------------------------------------------
-     vimscript
+     pdf-tools
+     ;; keyboard-layout
+     ipython-notebook
      python
      typescript
      yaml
@@ -43,6 +45,7 @@ values."
      javascript
      latex
      html
+     ruby
      shell
      (shell :variables
             shell-default-height 30
@@ -52,6 +55,7 @@ values."
      version-control
      themes-megapack
      typography
+     vimscript
      ;; w3m
      )
    ;; List of additional packages that will be installed without being
@@ -62,13 +66,9 @@ values."
                                       plant-uml-mode
                                       org-alert
                                       org-agenda-property
-                                      ;; pabbrev
-                                      ranger
                                       android-mode)
    ;; A list of packages and/or extensions that will not be install and loaded.
-   dotspacemacs-excluded-packages '(
-                                    adaptive-wrap
-                                    )
+   dotspacemacs-excluded-packages '(adaptive-wrap)
    ;; If non-nil spacemacs will delete any orphan packages, i.e. packages that
    ;; are declared in a layer which is not a member of
    ;; the list `dotspacemacs-configuration-layers'. (default t)
@@ -128,20 +128,19 @@ values."
                          sanityinc-tomorrow-eighties
                          farmhouse-dark
                          farmhouse-light
+
                          ;; spacegray
-                          ; highlights begin_src lines, neutral theme
                          ;; twilight-anti-bright ; very purple, dark blue, I like
-                                              ; this one makes use of highlight
-                                              ; well. Also highlights begin_src
-                                              ; lines
+                                        ; this one makes use of highlight well.
+                                        ; Also highlights begin_src lines
                          ;; gandalf
                          ;; soft-stone
                          ;; zenburn      ; gray theme, growing old of it, honestly.
-                         ;; twilight       ; this and zen-and-art look very similar
-                         ;; ujelly         ; very black and while
+                         ;; twilight     ; this and zen-and-art look very similar
+                         ;; ujelly       ; very black and while
                          ;; zen-and-art
-                         ;; tronesque            ; Very blue
-                         ;; toxi                 ; blue modeline, gray theme
+                         ;; tronesque      ; Very blue
+                         ;; toxi           ; blue modeline, gray theme
                          ;; soft-morning
                          ;; spacemacs-dark
                          ;; spacemacs-light
@@ -154,7 +153,7 @@ values."
    dotspacemacs-colorize-cursor-according-to-state t
    ;; Default font. `powerline-scale' allows to quickly tweak the mode-line
    ;; size to make separators look not too crappy.
-   dotspacemacs-default-font '("Fira Mono"
+   dotspacemacs-default-font '("Source Code Pro"
                                :size 13
                                :weight normal
                                :width normal
@@ -298,11 +297,14 @@ where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a
 package is loaded, you should place your code here."
 
-  ;; (require 'ox-latex)
-  ;; (add-to-list 'org-latex-packages-alist '("" "minted"))
+  ;; (font-lock-add-keywords 'org-mode-hook '(("\\(\\\\(.*\\\\)\\)"
+  ;;                                           1 font-lock-warning-face prepend)))
 
-  ;; increase cache before starting garbage collection. I have extra RAM.
-  (setq gc-cons-threshold 50000000)
+  ;; evil-surround (automatic parentheses)
+  (add-hook 'org-mode-hook
+            (lambda nil
+              (push '(?\( . ("\(" . "\)")) evil-surround-pairs-alist)
+              (push '(?\\ . ("\\(" . "\\)")) evil-surround-pairs-alist)))
 
   ;; maybe I'll like this?
   (setq scroll-conservatively 10000
@@ -349,8 +351,6 @@ package is loaded, you should place your code here."
   ;; moves the mouse out of the way.
   (mouse-avoidance-mode 'cat-and-mouse)
 
-  (helm-autoresize-mode t)
-
   (require 'org-alert)
   ;; libnotify uses notify-send to make dunst do cool shit
   (setq org-alert-notification-title "org")
@@ -364,6 +364,59 @@ package is loaded, you should place your code here."
         spaceline-org-clock-p t
         spaceline-minor-modes-p nil
         spaceline-buffer-encoding-abbrev-p nil)
+
+  ;; These funs replace the ones in the org-journal-mode. They do something
+  ;; stupid that breaks the functionality of evil-mode. This is pretty way to
+  ;; deal with the problem, and there were just two lines that I uncommented and
+  ;; voila. Those two lines just were not what I wanted.
+  ;; (require 'org-journal)
+  ;; (defun org-journal-open-previous-entry ()
+  ;;   "Open the previous journal entry starting from a currently displayed one"
+  ;;   (interactive)
+  ;;   (let ((calendar-date (org-journal-file-name->calendar-date
+  ;;                         (file-name-nondirectory (buffer-file-name))))
+  ;;         ;; (view-mode-p view-mode)
+  ;;         (dates (reverse (org-journal-list-dates))))
+  ;;     ;; insert current buffer in list if not present
+  ;;     (unless (file-exists-p (buffer-file-name))
+  ;;       (setq dates (cons calendar-date dates))
+  ;;       ;; reverse-sort!
+  ;;       (sort dates (lambda (a b) (calendar-date-compare (list b) (list a)))))
+  ;;     (calendar-basic-setup nil t)
+  ;;     (while (and dates (calendar-date-compare (list calendar-date) dates))
+  ;;       (setq dates (cdr dates)))
+  ;;     (calendar-exit)
+  ;;     (if (and dates (cadr dates))
+  ;;         (let* ((time (org-journal-calendar-date->time (cadr dates)))
+  ;;                (filename (org-journal-get-entry-path time)))
+  ;;           (find-file filename)
+  ;;           (org-journal-decrypt)
+  ;;           ;; (view-mode (if view-mode-p 1 -1))
+  ;;           (org-show-subtree))
+  ;;       (message "No previous journal entry before this one"))))
+  ;; (defun org-journal-open-next-entry ()
+  ;;   "Open the next journal entry starting from a currently displayed one"
+  ;;   (interactive)
+  ;;   (let ((calendar-date (org-journal-file-name->calendar-date
+  ;;                         (file-name-nondirectory (buffer-file-name))))
+  ;;         ;; (view-mode-p view-mode)
+  ;;         (dates (org-journal-list-dates)))
+  ;;     ;; insert current buffer in list if not present
+  ;;     (unless (file-exists-p (buffer-file-name))
+  ;;       (setq dates (cons calendar-date dates))
+  ;;       (sort dates (lambda (a b) (calendar-date-compare (list a) (list b)))))
+  ;;     (calendar-basic-setup nil t)
+  ;;     (while (and dates (not (calendar-date-compare (list calendar-date) dates)))
+  ;;       (setq dates (cdr dates)))
+  ;;     (calendar-exit)
+  ;;     (if dates
+  ;;         (let* ((time (org-journal-calendar-date->time (car dates)))
+  ;;                (filename (org-journal-get-entry-path time)))
+  ;;           (find-file filename)
+  ;;           (org-journal-decrypt)
+  ;;           ;; (view-mode (if view-mode-p 1 -1))
+  ;;           (org-show-subtree))
+  ;;       (message "No next journal entry after this one"))))
 
   (require 'golden-ratio)
 
@@ -382,8 +435,7 @@ package is loaded, you should place your code here."
   (add-to-list 'golden-ratio-exclude-buffer-names '("*Choices*"
                                                     "*Org todo*"
                                                     "*Org Agenda*"))
-  (add-to-list 'golden-ratio-exclude-modes '("ranger-mode"
-                                             "dired-mode"))
+  (add-to-list 'golden-ratio-exclude-modes '("dired-mode"))
 
   ;; makes super and sub scripts interact more predictably
   (setq org-use-sub-superscripts (quote {}))
@@ -391,7 +443,6 @@ package is loaded, you should place your code here."
   ;; I think this puts nice font coloring in code blocks
   (setq org-src-fontify-natively t)
   (setq org-src-tab-acts-natively t)
-
 
   ;; I think this gets rid of the things on the right margin on git. I find them
   ;; distracting when working on only 80 columns. I don't even think this is the
@@ -418,19 +469,19 @@ package is loaded, you should place your code here."
                         "~/org/finance.org"))))
 
   ;; todos
-  (setq org-todo-keywords
-        '((sequence "en passant(p)" "en attente(a)" "|" "fini(f)" "terminé(t)")
-          (sequence "will(w)" "won't(n)" "|" "did(d)" "didn't(!)")))
+  ;; (setq org-todo-keywords
+  ;;       '((sequence "en passant(p)" "en attente(a)" "|" "fini(f)" "terminé(t)")
+  ;;         (sequence "will(w)" "won't(n)" "|" "did(d)" "didn't(!)")))
 
-  (setq org-todo-keyword-faces
-        '(("en passant" . "orange")
-          ("en attente" . "sky blue")
-          ("fini" . "brown")
-          ("terminé" . (:background "dark gray" :foreground "brown"))
-          ("will" . "green")
-          ("won't" . "orange")
-          ("did" . "sky blue")
-          ("didn't" . "red")))
+  ;; (setq org-todo-keyword-faces
+  ;;       '(("en passant" . "orange")
+  ;;         ("en attente" . "sky blue")
+  ;;         ("fini" . "brown")
+  ;;         ("terminé" . (:background "dark gray" :foreground "brown"))
+  ;;         ("will" . "green")
+  ;;         ("won't" . "orange")
+  ;;         ("did" . "sky blue")
+  ;;         ("didn't" . "red")))
 
   ;; enter insert state automatically, because I can never otherwise.
   (add-hook 'org-capture-mode-hook 'evil-insert-state)
@@ -443,40 +494,6 @@ package is loaded, you should place your code here."
             (lambda nil
               'save-buffer-and-call-interactive-hooks)
             nil t)
-  ;; (add-hook 'typescript-mode
-  ;;           '(add-hook 'after-save-hook
-  ;;                      (async-shell-command (concat "tsc "
-  ;;                                                   buffer-file-name)))
-  ;;           nil t)
-
-  ;; (defcustom after-save-interactively-hook nil
-  ;;   "Normal hook that is run after a buffer is saved interactively to its file.
-  ;; See `run-hooks'."
-  ;;   :group 'file-truename
-  ;;   :type 'hook)
-
-  ;; (defun save-buffer-and-call-interactive-hooks (&optional arg)
-  ;;   (interactive "p")
-  ;;   (save-buffer arg)
-  ;;   (when (called-interactively-p 'all)  ;; run post-hooks only if called
-  ;;                                        ;; interactively
-  ;;     (run-hooks 'after-save-interactively-hook)))
-
-  ;; (global-set-key [(control x) (control s)] 'save-buffer-and-call-interactive-hooks)
-
-  ;; (defun run-mode-specific-after-save-interactively-buffer-hooks ())
-
-  ;; (add-hook 'after-save-interactively-hook 'run-mode-specific-after-save-interactively-buffer-hooks t)
-
-  ;; (defun tsc-compile ()
-  ;;   "tsc-compiles the file"
-  ;;   (interactive "P")
-  ;;   (async-shell-command (concat "tsc "
-  ;;                                buffer-file-name))
-  ;;   ;; (when (and (stringp buffer-file-name)
-  ;;   ;;            (string-match-p "\\.tsx\\'" buffer-file-name)))
-  ;;   )
-
 
   ;; company delete word
   (with-eval-after-load 'company
@@ -511,6 +528,8 @@ same directory as the org-buffer and insert a link to this file."
   ;; this has to deal with inline image displaying.
   (setq org-image-actual-width nil)
 
+  ;; I use these. They're pretty good funs. just is the first 4 letters of my
+  ;; name...
   (defun just-org-show-next-heading-tidily ()
     "Show next entry, keeping other entries closed."
     (interactive)
@@ -525,7 +544,6 @@ same directory as the org-buffer and insert a link to this file."
       (org-reveal t)
       (org-show-entry)
       (show-children)))
-
   (defun just-org-show-previous-heading-tidily ()
     "Show previous entry, keeping other entries closed."
     (interactive)
@@ -539,7 +557,6 @@ same directory as the org-buffer and insert a link to this file."
       (org-reveal t)
       (org-show-entry)
       (show-children)))
-
   (defun just-hide-other ()
     (interactive)
     (save-excursion
@@ -549,6 +566,9 @@ same directory as the org-buffer and insert a link to this file."
       (org-cycle)
       (org-cycle)))
 
+  ;; I use this to replace the narrow-org-to-sub-buffer or whatever. The other
+  ;; thing breaks the org major mode if the encoding changes while the buffer is
+  ;; narrowed to region.
   (defun narrow-or-widen-dwim (p)
     "If the buffer is narrowed, it widens.  Otherwise, it narrows intelligently.
 Intelligently means: region, subtree, or defun, whichever applies
@@ -563,16 +583,12 @@ narrowed."
            (narrow-to-region (region-beginning) (region-end)))
           ((derived-mode-p 'org-mode) (org-narrow-to-subtree))
           (t (narrow-to-defun))))
-  ;; (global-set-key (kbd "C-x n x") 'narrow-or-widen-dwim)
 
-  ;; gitter-token is required for gitter, which I don't even use...
-  (setq gitter-token "2090fc553806da1b8f2eaac15bcc5fe63f2cbbc5")
-
-  ;; Additional leader keys that I'v added. Pretty straight forward.
+  ;; Additional leader keys that I've added. Pretty straight forward.
   (spacemacs/set-leader-keys
     "w;" 'narrow-or-widen-dwim
     "aa" 'abbrev-mode
-    "ad" 'ranger
+    ;; "ad" 'ranger
     ;; `tT' is default, but `tt' is not taken
     "tt" 'spacemacs/toggle-typographic-substitutions
     "Ss" 'flyspell-mode
@@ -587,18 +603,6 @@ narrowed."
     "N" 'just-org-show-previous-heading-tidily
     "u" 'just-hide-other)
 
-  ;; (setq org-use-speed-commands t)
-  ;; (add-to-list 'org-speed-commands-user
-  ;;              '("n" ded/org-show-next-heading-tidily))
-  ;; (add-to-list 'org-speed-commands-user
-  ;;              '("p" ded/org-show-previous-heading-tidily))
-
-  ;; I don't even think these work >_>
-  (desktop-read)
-  (desktop-auto-save-enable)
-  (load "server")
-  (unless (server-running-p) (server-start))
-
   (setq org-emphasis-alist
         '(("*" bold)
           ("/" italic)
@@ -606,18 +610,28 @@ narrowed."
           ("=" org-verbatim verbatim)
           ("~" org-code verbatim)
           ("+" (:strike-through t))
-          ("^" (:overline t))))
+          ("^" (:overline t))))         ; overline does not export to latex.
 
   ;; annoying validate thing in org export that I don't understand
   (setq org-export-html-validation-link nil)
   (setq org-html-validation-link nil)
 
+  (desktop-read)
+  (desktop-auto-save-enable)
+  (load "server")
+  (unless (server-running-p) (server-start)))  ; end defun user-config
 
-  ;; Sets ispell to aspell which is supposed to be more accurate at the cost of
-  ;; performance. This may have been causing freezing issues, though.
-  ;; (setq ispell-extra-args '("--sug-mode=fast"))
+  ;; AUTOMATIC CONFIG
 
-  ) ;; end defun user-config
+  ;; Do not write anything past this comment. This is where Emacs will
+  ;; auto-generate custom variable definitions.
+
+
+  (defun dotspacemacs/emacs-custom-settings ()
+  "Emacs custom settings.
+This is an auto-generated function, do not modify its content directly, use
+Emacs customize menu instead.
+This function is called at the very end of Spacemacs initialization."
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -629,7 +643,7 @@ narrowed."
  '(evil-want-Y-yank-to-eol t)
  '(fci-rule-color "#343d46" t)
  '(fringe-mode 6 nil (fringe))
- '(linum-format "%3i" t)
+ '(linum-format "%3i")
  '(main-line-color1 "#1E1E1E")
  '(main-line-color2 "#111111")
  '(main-line-separator-style (quote chamfer))
@@ -639,7 +653,7 @@ narrowed."
  '(org-capture-templates (quote (("t" "task" entry (file "~/org/notes.org") ""))))
  '(package-selected-packages
    (quote
-    (tide typescript-mode yaml-mode fountain-mode org-journal ein python-environment sourcerer-theme company-auctex auctex olivetti vimrc-mode dactyl-mode typit typing typing-game erc-yt erc-view-log erc-social-graph erc-image erc-hl-nicks gitter hide-comnt yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode company-anaconda anaconda-mode pythonic helm-purpose window-purpose imenu-list zonokai-theme zenburn-theme zen-and-art-theme xterm-color ws-butler window-numbering which-key web-mode web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package underwater-theme ujelly-theme typo twilight-theme twilight-bright-theme twilight-anti-bright-theme tronesque-theme toxi-theme toc-org tao-theme tangotango-theme tango-plus-theme tango-2-theme tagedit sunny-day-theme sublime-themes subatomic256-theme subatomic-theme stekene-theme spacemacs-theme spaceline spacegray-theme soothe-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme smeargle slim-mode shell-pop seti-theme scss-mode sass-mode reverse-theme restart-emacs ranger rainbow-delimiters railscasts-theme quelpa purple-haze-theme pug-mode professional-theme popwin planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme persp-mode pcre2el pastels-on-dark-theme paradox orgit organic-green-theme org-projectile org-present org-pomodoro org-plus-contrib org-download org-bullets org-alert org-agenda-property open-junk-file omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme niflheim-theme neotree naquadah-theme mwim mustang-theme multi-term move-text monokai-theme monochrome-theme molokai-theme moe-theme mmm-mode minimal-theme material-theme markdown-toc majapahit-theme magit-gitflow macrostep lush-theme lorem-ipsum livid-mode linum-relative link-hint light-soap-theme less-css-mode json-mode js2-refactor js-doc jbeans-theme jazz-theme ir-black-theme intero inkpot-theme info+ indent-guide ido-vertical-mode hungry-delete htmlize hlint-refactor hl-todo hindent highlight-parentheses highlight-numbers highlight-indentation heroku-theme hemisu-theme help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-hoogle helm-gitignore helm-flx helm-descbinds helm-css-scss helm-company helm-c-yasnippet helm-ag hc-zenburn-theme haskell-snippets gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme google-translate golden-ratio go-eldoc gnuplot gmail-message-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ gh-md gandalf-theme flyspell-correct-helm flycheck-pos-tip flycheck-haskell flx-ido flatui-theme flatland-theme firebelly-theme fill-column-indicator farmhouse-theme fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu espresso-theme eshell-z eshell-prompt-extras esh-help emmet-mode elisp-slime-nav edit-server dumb-jump dracula-theme django-theme diff-hl define-word darktooth-theme darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme company-web company-tern company-statistics company-go company-ghci company-ghc company-emacs-eclim company-cabal column-enforce-mode colorsarenice-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode cmm-mode clues-theme clojure-snippets clj-refactor clean-aindent-mode cider-eval-sexp-fu cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme auto-yasnippet auto-highlight-symbol auto-dictionary auto-compile apropospriate-theme anti-zenburn-theme android-mode ample-zen-theme ample-theme alect-themes aggressive-indent afternoon-theme ace-window ace-link ace-jump-helm-line ac-ispell)))
+    (powerline org projectile go-guru git-gutter flyspell-correct iedit autothemer tern go-mode eclim hydra inflections multiple-cursors cider seq spinner clojure-mode bind-key auto-complete company highlight anzu smartparens bind-map undo-tree flycheck haskell-mode markdown-mode yasnippet request helm helm-core skewer-mode js2-mode magit magit-popup git-commit with-editor async f s dash rvm ruby-tools ruby-test-mode rubocop rspec-mode robe rbenv rake minitest chruby bundler inf-ruby flatland-black-theme paren-face icicles pdf-tools tablist tide typescript-mode yaml-mode fountain-mode ein python-environment sourcerer-theme company-auctex auctex olivetti vimrc-mode dactyl-mode typit typing typing-game erc-yt erc-view-log erc-social-graph erc-image erc-hl-nicks gitter hide-comnt yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode company-anaconda anaconda-mode pythonic helm-purpose window-purpose imenu-list zonokai-theme zenburn-theme zen-and-art-theme xterm-color ws-butler window-numbering which-key web-mode web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package underwater-theme ujelly-theme typo twilight-theme twilight-bright-theme twilight-anti-bright-theme tronesque-theme toxi-theme toc-org tao-theme tangotango-theme tango-plus-theme tango-2-theme tagedit sunny-day-theme sublime-themes subatomic256-theme subatomic-theme stekene-theme spacemacs-theme spaceline spacegray-theme soothe-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme smeargle slim-mode shell-pop seti-theme scss-mode sass-mode reverse-theme restart-emacs ranger rainbow-delimiters railscasts-theme quelpa purple-haze-theme pug-mode professional-theme popwin planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme persp-mode pcre2el pastels-on-dark-theme paradox orgit organic-green-theme org-projectile org-present org-pomodoro org-plus-contrib org-download org-bullets org-alert org-agenda-property open-junk-file omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme niflheim-theme neotree naquadah-theme mwim mustang-theme multi-term move-text monokai-theme monochrome-theme molokai-theme moe-theme mmm-mode minimal-theme material-theme markdown-toc majapahit-theme magit-gitflow macrostep lush-theme lorem-ipsum livid-mode linum-relative link-hint light-soap-theme less-css-mode json-mode js2-refactor js-doc jbeans-theme jazz-theme ir-black-theme intero inkpot-theme info+ indent-guide ido-vertical-mode hungry-delete htmlize hlint-refactor hl-todo hindent highlight-parentheses highlight-numbers highlight-indentation heroku-theme hemisu-theme help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-hoogle helm-gitignore helm-flx helm-descbinds helm-css-scss helm-company helm-c-yasnippet helm-ag hc-zenburn-theme haskell-snippets gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme google-translate golden-ratio go-eldoc gnuplot gmail-message-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ gh-md gandalf-theme flyspell-correct-helm flycheck-pos-tip flycheck-haskell flx-ido flatui-theme flatland-theme firebelly-theme fill-column-indicator farmhouse-theme fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu espresso-theme eshell-z eshell-prompt-extras esh-help emmet-mode elisp-slime-nav edit-server dumb-jump dracula-theme django-theme diff-hl define-word darktooth-theme darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme company-web company-tern company-statistics company-go company-ghci company-ghc company-emacs-eclim company-cabal column-enforce-mode colorsarenice-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode cmm-mode clues-theme clojure-snippets clj-refactor clean-aindent-mode cider-eval-sexp-fu cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme auto-yasnippet auto-highlight-symbol auto-dictionary auto-compile apropospriate-theme anti-zenburn-theme android-mode ample-zen-theme ample-theme alect-themes aggressive-indent afternoon-theme ace-window ace-link ace-jump-helm-line ac-ispell)))
  '(paradox-github-token t)
  '(pos-tip-background-color "#303030")
  '(powerline-color1 "#3d3d68")
@@ -685,15 +699,5 @@ narrowed."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(company-tooltip-common ((t (:inherit company-tooltip :weight bold :underline nil))))
- '(company-tooltip-common-selection ((t (:inherit company-tooltip-selection :weight bold :underline nil))))
- '(org-level-1 ((t (:foreground "#4a8b0d" :weight bold :height 1.0)))))
-
-
-
-;; AUTOMATIC CONFIG
-
-;; Do not write anything past this comment. This is where Emacs will
-;; auto-generate custom variable definitions.
-
-
+ )
+)
